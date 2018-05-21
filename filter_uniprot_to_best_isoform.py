@@ -3,7 +3,6 @@ import Bio
 import Bio.SeqIO
 import argparse
 import re
-import urllib,urllib2
 import sys
 import subprocess
 import time
@@ -12,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('fasta',type=str,help='The path to the fasta file to clean')
 parser.add_argument('-nb',default=False,action='store_true',help='Exit before blastp-ing but after writing the query fasta file')
 parser.add_argument('-sb',default=False,action='store_true',help='Skip the blast step')
+parser.add_argument('-cr',type=str,required=False,default="blastp.results.cache.tsv",help='Path to the cached BLASTP results file (output fmt 6)')
 args = parser.parse_args()
 
 gene_isoform_clusters = dict()
@@ -77,7 +77,6 @@ sys.stderr.write("IDs to pass:"+str(len(IDs_to_pass))+"\n")
 sys.stderr.write("Gene-isoform clusters that are special cases:"+str(len(special_cases))+"\n")
 sys.stderr.write("Gene-isoform clusters that are special cases:"+str(special_cases)+"\n")
 sys.stderr.write("Gene-isoform clusters that require further evaluation:"+str(len(further_evaluation))+"\n")
-
 
 #sys.stderr.write(further_evaluation)
 ###Filter down
@@ -154,11 +153,11 @@ class Blast_Cache:
     def get_score(self,uni_ID):
         return self.cache[uni_ID]         
 
-cache = Blast_Cache("blastp.results.cache.tsv")
+cache = Blast_Cache(args.cr)
 
 ##Write the query file for blasting
 query_fasta_path="tmp.query.fa"
-qf_handle = open(query_fasta_path,"wb")
+qf_handle = open(query_fasta_path,"wt")
 j=0
 k=0
 for g in further_evaluation:
@@ -171,16 +170,16 @@ for g in further_evaluation:
         j+=1
 qf_handle.close()
 sys.stderr.write("Had "+str(j)+" total proteins to lookup, and "+str(k)+" cache hits.\n")
-sys.stderr.write("Wrote "+str(j-k)+".\n")
+sys.stderr.write("Wrote "+str(j-k)+" to tmp.query.fa.\n")
 if args.nb == True:
     exit()
 
 if args.sb == False:
-    ##Or, just blastp it to a related genome and pick the isoform with the best scores
-    handle = open("blastp.results.cache.tsv","ab")
+    ##Or, just blastp it to a related proteome and pick the isoform with the best scores
+    handle = open(args.cr,"at")
     sys.stderr.write("Now blastp-ing all the different isoforms...\n")
     sys.stderr.write(str(j-k)+" different isoforms to evaluate\n")
-    sys.stderr.write("This could take awhile... Recommend you parallelize the BLASTP search on your own hardware\n")
+    sys.stderr.write("This could take awhile... Recommend you use the -nb/-sb parameter and parallelize the BLASTP search on your own hardware\n")
     target_fasta_path="./GCF_000002335.3_Tcas5.2_genomic.fna"
     cmd_string = "/lab/solexa_weng/testtube/ncbi-blast-2.6.0+/bin/blastp -query "+query_fasta_path+" -subject "+target_fasta_path+" -culling_limit 1 -evalue 1e-5 -outfmt 6 -gapextend 1" 
     blast_process = subprocess.Popen(cmd_string.split(" "),stdout=subprocess.PIPE)
