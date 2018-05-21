@@ -59,7 +59,7 @@ mv tmp.query.fa Tribolium.tmp.query.fa
 echo "Running blastp in parallel"
 /lab/solexa_weng/testtube/parallel_blast/parallel_blastp_map.sh Tribolium.tmp.query.fa for_tribolium.faa > Tcas_blastp.results.cache.tsv
 echo "Running the final filtering step... Find the results in isoform-filtered-*"
-python3 ../filter_uniprot_to_best_isoform.py -cr Tcas_blastp.results.cache.tsv -sb <(2018_05_uniprot-proteome_Tcastaneum_GCA_000002335.3.fasta.gz) > isoform-filtered_2018_05_uniprot-proteome_Tcastaneum_GCA_000002335.3.fasta
+python3 ../filter_uniprot_to_best_isoform.py -cr Tcas_blastp.results.cache.tsv -sb <(zcat 2018_05_uniprot-proteome_Tcastaneum_GCA_000002335.3.fasta.gz) > isoform-filtered_2018_05_uniprot-proteome_Tcastaneum_GCA_000002335.3.fasta
 echo "Done."
 echo ""
 
