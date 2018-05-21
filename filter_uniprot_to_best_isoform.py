@@ -47,8 +47,6 @@ handle.close()
 
 sys.stderr.write("Loaded "+str(len(record_dict))+" FASTA records from:"+args.fasta+"\n")
 sys.stderr.write("Produced "+str(len(gene_isoform_clusters))+" gene clusters\n")
-#for key in record_dict.keys():
-#    r = record_dict[key] 
 
 sys.stderr.write("Evalutating based on swissprot/reviewed anotation...\n")
 IDs_to_pass = []
@@ -134,7 +132,9 @@ class Blast_Cache:
         self.cache = dict()
         for line in handle.readlines():
             splitline = line.rstrip().split("\t")
-            if len(splitline) != 12:
+            if len(splitline) < 12:
+                sys.stderr.write("Warning: skipping a line due to it having less that 12 fields. Corrupted line?")
+                sys.stderr.write(line)
                 ##Corrupted line, skip
                 continue
             uni_id = splitline[0].split("|")[1]
@@ -153,6 +153,7 @@ class Blast_Cache:
     def get_score(self,uni_ID):
         return self.cache[uni_ID]         
 
+sys.stderr.write("Attempting to open the cache file:"+args.cr+"\n")
 cache = Blast_Cache(args.cr)
 
 ##Write the query file for blasting
