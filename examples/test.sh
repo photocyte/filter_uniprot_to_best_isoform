@@ -8,7 +8,14 @@ echo ""
 echo "Manually download the Tribolium castaneum Uniprot reference proteome from Uniprot"
 echo "Find it here: http://www.uniprot.org/proteomes/UP000007266"
 echo ""
-echo "I've manually downloaded both these FASTA files and added them to the library for convinience"
+
+##Agrilus planipennis reference proteome
+##http://www.uniprot.org/proteomes/UP000192223
+echo "Manually download the Agrilus planipennis Uniprot reference proteome from Uniprot"
+echo "Find it here: http://www.uniprot.org/proteomes/UP000192223"
+echo ""
+
+echo "I've manually downloaded all these FASTA files and added them to the library for convinience"
 echo "Copyright etc. reserved by Uniprot"
 echo ""
 
@@ -45,6 +52,15 @@ zcat GCF_000001215.4_Release_6_plus_ISO1_MT_protein.faa.gz\
  GCF_000005575.2_AgamP3_protein.faa.gz > for_tribolium.faa
 makeblastdb -dbtype prot -in for_tribolium.faa
 
+echo "Producing BLASTP database for testing Agrilus isoforms."
+zcat GCF_000001215.4_Release_6_plus_ISO1_MT_protein.faa.gz\
+ GCF_000002335.3_Tcas5.2_protein.faa.gz\
+ GCF_000002195.4_Amel_4.5_protein.faa.gz\
+ GCF_000151625.1_ASM15162v1_protein.faa.gz\
+ GCF_000002985.6_WBcel235_protein.faa.gz\
+ GCF_000005575.2_AgamP3_protein.faa.gz > for_agrilus.faa
+makeblastdb -dbtype prot -in for_agrilus.faa
+
 echo "Now running the filtering script on Drosophila, but exiting before the BLAST step"
 python3 ../filter_uniprot_to_best_isoform.py -nb <(zcat 2018_05_uniprot-proteome_Dmelanogaster_GCA_000001215.4.fasta.gz)
 mv tmp.query.fa Drosophila.tmp.query.fa
@@ -62,6 +78,16 @@ echo "Running blastp in parallel"
 /lab/solexa_weng/testtube/parallel_blast/parallel_blastp_map.sh Tribolium.tmp.query.fa for_tribolium.faa Tcas_blastp.results.cache.tsv
 echo "Running the final filtering step... Find the results in isoform-filtered-*"
 python3 ../filter_uniprot_to_best_isoform.py -cr Tcas_blastp.results.cache.tsv -sb <(zcat 2018_05_uniprot-proteome_Tcastaneum_GCA_000002335.3.fasta.gz) > isoform-filtered_2018_05_uniprot-proteome_Tcastaneum_GCA_000002335.3.fasta
+echo "Done."
+echo ""
+
+echo "Now running the filtering script on Agrilus, but exiting before the BLAST step"
+python3 ../filter_uniprot_to_best_isoform.py -nb <(cat 2018_06_UP000192223.fasta)
+mv tmp.query.fa Agrilus.tmp.query.fa
+echo "Running blastp in parallel"
+/lab/solexa_weng/testtube/parallel_blast/parallel_blastp_map.sh Agrilus.tmp.query.fa for_agrilus.faa Agrilus_blastp.results.cache.tsv
+echo "Running the final filtering step... Find the results in isoform-filtered-*"
+python3 ../filter_uniprot_to_best_isoform.py -cr Agrilus_blastp.results.cache.tsv -sb <(cat 2018_06_UP000192223.fasta) > isoform-filtered_2018_06_uniprot-proteome_Aplanipenis_UP000192223.fasta
 echo "Done."
 echo ""
 
